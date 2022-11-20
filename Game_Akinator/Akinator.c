@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <assert.h>
 
-Node* treatQuestion(Node* currPtrNode){ //FIXME: question flag
+Node* treatQuestion(Node* currPtrNode){
+
     assert(currPtrNode != NULL);
     int c;
     do {
@@ -13,23 +14,22 @@ Node* treatQuestion(Node* currPtrNode){ //FIXME: question flag
                 ;
         if (c == 'Y' || c == 'y') {
             if(currPtrNode->leftSubTree != NULL)
-                currPtrNode = currPtrNode->leftSubTree;
+                return currPtrNode->leftSubTree;
             else
-                currPtrNode = NULL;
+                return NULL;
         }
         else if (c == 'N' || c == 'n') {
             if(currPtrNode->rightSubTree != NULL)
-                currPtrNode = currPtrNode->rightSubTree;
+                return currPtrNode->rightSubTree;
             else
-                currPtrNode = NULL;
+                return NULL;
         }
-    }while(c != 'Y' && c != 'y' && c != 'N' && c != 'n');
-
-    return currPtrNode;
+    }while(1);
 }
 
 Node* nameQuestion(Node* currPtrNode){
     assert(currPtrNode != NULL);
+
     int c;
     do {
         printf("Имя вашего персонажа - ");
@@ -37,18 +37,20 @@ Node* nameQuestion(Node* currPtrNode){
         printf("? [Y,y/N,n]\n");
         while((c = getchar()) == '\n')
             ;
-        if (c == 'Y' || c == 'y')
+        if (c == 'Y' || c == 'y') {
             printf("Я отгадал!\n");
-        else if (c == 'N' || c == 'n')
+            return NULL;
+        }
+        else if (c == 'N' || c == 'n') {
             printf("Я прошмандовка азербайджанская...\n");
+            return NULL;
+        }
 
-    }while(c != 'Y' && c != 'y' && c != 'N' && c != 'n');
-
-    currPtrNode = NULL;
-    return currPtrNode;
+    }while(1);
 }
 
 char continueQuestion(void){
+
     int c;
     do {
         printf("Хотите заново? [Y,y/N,n]\n");
@@ -62,13 +64,14 @@ char continueQuestion(void){
             printf("До встречи!\n");
             return 0;
         }
-    }while(c != 'Y' && c != 'y' && c != 'N' && c != 'n');
-    assert(0);
+    }while(1);
 }
 
 int gameStart(Node* ptrNode){
-    if(ptrNode == NULL){
+
+    if(ptrNode == NULL) {
         printf("game: error NULL node");
+        return 1;
     }
 
     Node* currPtrNode;
@@ -90,7 +93,6 @@ int gameStart(Node* ptrNode){
             else if (currPtrNode != NULL) //дошли до конца
                 currPtrNode = nameQuestion(currPtrNode);
         }
-
         continueFlag = continueQuestion();
     }
     return 0;

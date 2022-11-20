@@ -5,6 +5,7 @@
 
 ///Инициализация вершины дерева
 Node* nodeInit(void){
+
     Node* node = (Node*) malloc(sizeof(Node));
     if(node == NULL)
         return NULL;
@@ -23,12 +24,15 @@ Node* nodeInit(void){
 
 ///Деструктор дерева (и всех поддеревьев)
 void nodeDestruct(Node* node){
-    stackFree(node->messageStack);
-    if (node->leftSubTree != NULL)
-        nodeDestruct(node->leftSubTree);
-    if (node->rightSubTree != NULL)
-        nodeDestruct(node->rightSubTree);
-    free(node);
+
+    if(node != NULL) {
+        stackFree(node->messageStack);
+        if (node->leftSubTree != NULL)
+            nodeDestruct(node->leftSubTree);
+        if (node->rightSubTree != NULL)
+            nodeDestruct(node->rightSubTree);
+        free(node);
+    }
 }
 #pragma clang diagnostic pop
 
@@ -42,14 +46,14 @@ Node* nodeReadFromStack(Stack* ptrStack, unsigned int start){
     Node* ptrNode = nodeInit();
 
     unsigned int i = start; //позиция считывания
-    unsigned int countOfDisclosed = 0; //кол-во незакрытых скобок {}
+    int countOfDisclosed = 0; //кол-во незакрытых скобок {}
 
     if(stack_r_ch(ptrStack, ++i) == '{') { //наткнулись на левое дерево
         ptrNode->leftSubTree = nodeReadFromStack(ptrStack, i);
         countOfDisclosed++;
     }
 
-    while(countOfDisclosed > 0){ //скип левого дерева
+    while(countOfDisclosed != 0){ //скип левого дерева
         i++;
         if(stack_r_ch(ptrStack, i) == '{')
             countOfDisclosed++;
@@ -86,13 +90,27 @@ Stack* readToArrayFromFile(FILE* input) {
     return ptrStack;
 }
 
+int getCountOfDisclosed(Stack* ptrStackNode){
+    assert(ptrStackNode != NULL);
+
+    int countOfDisclosed = 0; //кол-во незакрытых скобок {}
+
+    for(int i = 0; i < getsize(ptrStackNode); i++){
+        if(stack_r_ch(ptrStackNode, i) == '{')
+            countOfDisclosed++;
+        else if(stack_r_ch(ptrStackNode, i) == '}')
+            countOfDisclosed--;
+    }
+    return countOfDisclosed;
+}
+
 ///Читает дерево из данного файла и возвращает указатель на неё
 Node* nodeReadFromFile(FILE* input){
 
     Stack* ptrStack = readToArrayFromFile(input);
     Node* node;
 
-    if(*(char*)stack_r(ptrStack, 0) == '{')
+    if(stack_r_ch(ptrStack, 0) == '{' && getCountOfDisclosed(ptrStack) == 0)
         node = nodeReadFromStack(ptrStack, 0);
     else
         node = NULL;
