@@ -3,8 +3,8 @@
 #include <assert.h>
 
 Node* treatQuestion(Node* currPtrNode){
-
     assert(currPtrNode != NULL);
+
     int c;
     do {
         //printf("Ваш персонаж ");
