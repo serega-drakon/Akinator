@@ -24,12 +24,12 @@ Args getArgs(int argc, char** args){
             }
             else{
                 printf("getArgs: error file path does not exist\n");
-                return arguments;
             }
         }
         else if(strCompare(args[i], "-save")){
             //FIXME
         }
     }
+    return arguments;
 }
 

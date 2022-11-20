@@ -11,13 +11,20 @@ int main(int argc, char** args) {
     Node *ptrNode = NULL;
 
     FILE* inputFile;
-    if(mainArg.customFilePathFlag)
+    if(mainArg.customFilePathFlag) {
         inputFile = fopen(mainArg.customFilePath, "r");
+        if(inputFile == NULL) {
+            printf("This file does not exist: %s\n", mainArg.customFilePath);
+            inputFile = fopen("../text.txt", "r");
+        }
+    }
     else
         inputFile = fopen("../text.txt", "r");
 
     if(inputFile != NULL)
         ptrNode = nodeReadFromFile(inputFile);
+    else
+        printf("Error reading file\n");
 
     if(ptrNode != NULL)
         gameStart(ptrNode);
