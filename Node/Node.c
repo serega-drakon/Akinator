@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-///Инициализация одного
+///Инициализация вершины дерева
 Node* nodeInit(void){
     Node* node = (Node*) malloc(sizeof(Node));
     if(node == NULL)
