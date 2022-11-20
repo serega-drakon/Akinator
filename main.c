@@ -14,7 +14,7 @@ int main(int argc, char** args) {
     if(mainArg.customFilePathFlag) {
         inputFile = fopen(mainArg.customFilePath, "r");
         if(inputFile == NULL) {
-            printf("This file does not exist: %s\n", mainArg.customFilePath);
+            printf("This file does not exist: %s\n Opening the default file \"text.txt\"...", mainArg.customFilePath);
             inputFile = fopen("../text.txt", "r");
         }
     }
@@ -28,6 +28,8 @@ int main(int argc, char** args) {
 
     if(ptrNode != NULL)
         gameStart(ptrNode);
+    else
+        printf("Node error, cannot run the game...\n");
 
     nodeDestruct(ptrNode);
     return 0;
