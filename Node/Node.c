@@ -39,6 +39,29 @@ void nodeDestruct(Node* node){
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "misc-no-recursion"
 
+///Подфункция nodeReadFromStack
+void skipBraces(Stack* ptrStack, unsigned int* i,int* countOfDisclosed){
+
+    while((*countOfDisclosed) != 0){ //скип левого дерева
+        (*i)++;
+        if(stack_r_ch(ptrStack, *i) == '{')
+            (*countOfDisclosed)++;
+        else if(stack_r_ch(ptrStack, *i) == '}')
+            (*countOfDisclosed)--;
+    }
+}
+
+///Подфункция nodeReadFromStack
+void pushMessage(Node* ptrNode, Stack* ptrStack, unsigned int* i){
+
+    char c;
+
+    for(; (c = stack_r_ch(ptrStack, *i)) != '{' && c != '}'; (*i)++)
+        push(ptrNode->messageStack, &c);
+    c = '\0';
+    push(ptrNode->messageStack, &c);
+}
+
 ///Подфункция nodeReadFromFile
 Node* nodeReadFromStack(Stack* ptrStack, unsigned int start){
     assert(ptrStack != NULL);
@@ -53,26 +76,23 @@ Node* nodeReadFromStack(Stack* ptrStack, unsigned int start){
         countOfDisclosed++;
     }
 
-    while(countOfDisclosed != 0){ //скип левого дерева
-        i++;
-        if(stack_r_ch(ptrStack, i) == '{')
-            countOfDisclosed++;
-        else if(stack_r_ch(ptrStack, i) == '}')
-            countOfDisclosed--;
-    }
+    skipBraces(ptrStack, &i, &countOfDisclosed);
 
     if(ptrNode->leftSubTree != NULL) //те здесь по алгоритму должна быть закрывающая скобка
         i++;
-    char c;
 
-    for(; (c = stack_r_ch(ptrStack, i)) != '{' && c != '}'; i++)
-        push(ptrNode->messageStack, &c);
-    c = '\0';
-    push(ptrNode->messageStack, &c);
+    pushMessage(ptrNode, ptrStack, &i);
 
     if(stack_r_ch(ptrStack, i) == '{') { //наткнулись на правое
         ptrNode->rightSubTree = nodeReadFromStack(ptrStack, i);
+        countOfDisclosed++;
+
+        skipBraces(ptrStack, &i, &countOfDisclosed);
+
+        if(stack_r_ch(ptrStack, ++i) != '}')
+            printf("Ошибка ввода, после правого поддерева символы!\n");
     }
+
     return ptrNode;
 }
 #pragma clang diagnostic pop
@@ -104,14 +124,25 @@ int getCountOfDisclosed(Stack* ptrStackNode){
     return countOfDisclosed;
 }
 
+unsigned int skipSpacePos(Stack* ptrStack){
+
+    unsigned int i = 0;
+
+    char c;
+    while((c = stack_r_ch(ptrStack, i)) == ' ' || c == '\t' || c == '\n')
+        i++;
+    return i;
+}
+
 ///Читает дерево из данного файла и возвращает указатель на неё
 Node* nodeReadFromFile(FILE* input){
 
     Stack* ptrStack = readToArrayFromFile(input);
     Node* node;
 
-    if(stack_r_ch(ptrStack, 0) == '{' && getCountOfDisclosed(ptrStack) == 0)
-        node = nodeReadFromStack(ptrStack, 0);
+    unsigned int start = skipSpacePos(ptrStack);
+    if(getCountOfDisclosed(ptrStack) == 0 && stack_r_ch(ptrStack, start) == '{')
+        node = nodeReadFromStack(ptrStack, start);
     else
         node = NULL;
 

@@ -7,10 +7,12 @@ Node* treatQuestion(Node* currPtrNode){
 
     int c;
     do {
-        //printf("Ваш персонаж ");
+        //printf("Ваш персонаж "); //здесь я закоментил чтобы такой соцопрос про языки норм работал
         nodePrintMessage(currPtrNode);
         printf(" [Y,y/N,n]\n");
-        while((c = getchar()) == '\n')
+        c = getchar();
+        if(c != '\n')
+            while(getchar() != '\n')
                 ;
         if (c == 'Y' || c == 'y') {
             if(currPtrNode->leftSubTree != NULL)
@@ -32,11 +34,14 @@ Node* nameQuestion(Node* currPtrNode){
 
     int c;
     do {
-        printf("Имя вашего персонажа - ");
+        //printf("Имя вашего персонажа - ");
+        printf("Ваш язык - ");
         nodePrintMessage(currPtrNode);
         printf("? [Y,y/N,n]\n");
-        while((c = getchar()) == '\n')
-            ;
+        c = getchar();
+        if(c != '\n')
+            while(getchar() != '\n')
+                ;
         if (c == 'Y' || c == 'y') {
             printf("Я отгадал!\n");
             return NULL;
@@ -54,8 +59,10 @@ char continueQuestion(void){
     int c;
     do {
         printf("Хотите заново? [Y,y/N,n]\n");
-        while((c = getchar()) == '\n')
-            ;
+        c = getchar();
+        if(c != '\n')
+            while(getchar() != '\n')
+                ;
         if (c == 'Y' || c == 'y') {
             printf("Будет сделано!\n");
             return 1;
