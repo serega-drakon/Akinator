@@ -2,6 +2,17 @@
 #include <stdio.h>
 #include <assert.h>
 
+int getUserInput(void){
+
+    int c;
+
+    c = getchar();
+    if(c != '\n')
+        while(getchar() != '\n')
+            ;
+    return c;
+}
+
 Node* treatQuestion(Node* currPtrNode){
     assert(currPtrNode != NULL);
 
@@ -10,10 +21,7 @@ Node* treatQuestion(Node* currPtrNode){
         //printf("Ваш персонаж "); //здесь я закоментил чтобы такой соцопрос про языки норм работал
         nodePrintMessage(currPtrNode);
         printf(" [Y,y/N,n]\n");
-        c = getchar();
-        if(c != '\n')
-            while(getchar() != '\n')
-                ;
+        c = getUserInput();
         if (c == 'Y' || c == 'y') {
             if(currPtrNode->leftSubTree != NULL)
                 return currPtrNode->leftSubTree;
@@ -38,10 +46,7 @@ Node* nameQuestion(Node* currPtrNode){
         printf("Ваш язык - ");
         nodePrintMessage(currPtrNode);
         printf("? [Y,y/N,n]\n");
-        c = getchar();
-        if(c != '\n')
-            while(getchar() != '\n')
-                ;
+        c = getUserInput();
         if (c == 'Y' || c == 'y') {
             printf("Я отгадал!\n");
             return NULL;
@@ -59,10 +64,7 @@ char continueQuestion(void){
     int c;
     do {
         printf("Хотите заново? [Y,y/N,n]\n");
-        c = getchar();
-        if(c != '\n')
-            while(getchar() != '\n')
-                ;
+        c = getUserInput();
         if (c == 'Y' || c == 'y') {
             printf("Будет сделано!\n");
             return 1;
