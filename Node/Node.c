@@ -74,12 +74,11 @@ Node* nodeReadFromStack(Stack* ptrStack, unsigned int start){
     if(stack_r_ch(ptrStack, ++i) == '{') { //наткнулись на левое дерево
         ptrNode->leftSubTree = nodeReadFromStack(ptrStack, i);
         countOfDisclosed++;
-    }
 
-    skipBraces(ptrStack, &i, &countOfDisclosed);
+        skipBraces(ptrStack, &i, &countOfDisclosed);
 
-    if(ptrNode->leftSubTree != NULL) //те здесь по алгоритму должна быть закрывающая скобка
         i++;
+    }
 
     pushMessage(ptrNode, ptrStack, &i);
 
