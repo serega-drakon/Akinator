@@ -10,7 +10,7 @@ Node* nodeInit(void){
     if(node == NULL)
         return NULL;
 
-    node->messageStack = stackInit(sizeof(char));
+    node->messageStack = stackInit(sizeof(int));
     if(stackErrorCheck(node->messageStack))
         return NULL;
 
@@ -40,23 +40,25 @@ void nodeDestruct(Node* node){
 #pragma ide diagnostic ignored "misc-no-recursion"
 
 ///Подфункция nodeReadFromStack
-void skipBraces(Stack* ptrStack, unsigned int* i,int* countOfDisclosed){
+void skipBraces(Stack* ptrStack, unsigned int* i){
 
-    while((*countOfDisclosed) != 0){ //скип левого дерева
+    int countOfDisclosed = 1;
+
+    while(countOfDisclosed != 0){ //скип левого дерева
         (*i)++;
-        if(stack_r_ch(ptrStack, *i) == '{')
-            (*countOfDisclosed)++;
-        else if(stack_r_ch(ptrStack, *i) == '}')
-            (*countOfDisclosed)--;
+        if(stack_r_int(ptrStack, *i) == '{')
+            countOfDisclosed++;
+        else if(stack_r_int(ptrStack, *i) == '}')
+            countOfDisclosed--;
     }
 }
 
 ///Подфункция nodeReadFromStack
 void pushMessage(Node* ptrNode, Stack* ptrStack, unsigned int* i){
 
-    char c;
+    int c;
 
-    for(; (c = stack_r_ch(ptrStack, *i)) != '{' && c != '}'; (*i)++)
+    for(; (c = stack_r_int(ptrStack, *i)) != '{' && c != '}'; (*i)++)
         push(ptrNode->messageStack, &c);
     c = '\0';
     push(ptrNode->messageStack, &c);
@@ -69,26 +71,23 @@ Node* nodeReadFromStack(Stack* ptrStack, unsigned int start){
     Node* ptrNode = nodeInit();
 
     unsigned int i = start; //позиция считывания
-    int countOfDisclosed = 0; //кол-во незакрытых скобок {}
 
-    if(stack_r_ch(ptrStack, ++i) == '{') { //наткнулись на левое дерево
+    if(stack_r_int(ptrStack, ++i) == '{') { //наткнулись на левое дерево
         ptrNode->leftSubTree = nodeReadFromStack(ptrStack, i);
-        countOfDisclosed++;
 
-        skipBraces(ptrStack, &i, &countOfDisclosed);
+        skipBraces(ptrStack, &i);
 
         i++;
     }
 
     pushMessage(ptrNode, ptrStack, &i);
 
-    if(stack_r_ch(ptrStack, i) == '{') { //наткнулись на правое
+    if(stack_r_int(ptrStack, i) == '{') { //наткнулись на правое
         ptrNode->rightSubTree = nodeReadFromStack(ptrStack, i);
-        countOfDisclosed++;
 
-        skipBraces(ptrStack, &i, &countOfDisclosed);
+        skipBraces(ptrStack, &i);
 
-        if(stack_r_ch(ptrStack, ++i) != '}')
+        if(stack_r_int(ptrStack, ++i) != '}')
             printf("Ошибка ввода, после правого поддерева символы!\n");
     }
 
@@ -101,7 +100,7 @@ Node* nodeReadFromStack(Stack* ptrStack, unsigned int start){
 Stack* readToArrayFromFile(FILE* input) {
     assert(input != NULL);
 
-    Stack *ptrStack = stackInit(sizeof(char));
+    Stack *ptrStack = stackInit(sizeof(int));
     int c;
 
     while ((c = getc(input)) != EOF)
@@ -115,9 +114,9 @@ int getCountOfDisclosed(Stack* ptrStackNode){
     int countOfDisclosed = 0; //кол-во незакрытых скобок {}
 
     for(int i = 0; i < getsize(ptrStackNode); i++){
-        if(stack_r_ch(ptrStackNode, i) == '{')
+        if(stack_r_int(ptrStackNode, i) == '{')
             countOfDisclosed++;
-        else if(stack_r_ch(ptrStackNode, i) == '}')
+        else if(stack_r_int(ptrStackNode, i) == '}')
             countOfDisclosed--;
     }
     return countOfDisclosed;
@@ -126,9 +125,9 @@ int getCountOfDisclosed(Stack* ptrStackNode){
 unsigned int skipSpacePos(Stack* ptrStack){
 
     unsigned int i = 0;
+    int c;
 
-    char c;
-    while((c = stack_r_ch(ptrStack, i)) == ' ' || c == '\t' || c == '\n')
+    while((c = stack_r_int(ptrStack, i)) == ' ' || c == '\t' || c == '\n')
         i++;
     return i;
 }
@@ -140,8 +139,10 @@ Node* nodeReadFromFile(FILE* input){
     Node* node;
 
     unsigned int start = skipSpacePos(ptrStack);
-    if(getCountOfDisclosed(ptrStack) == 0 && stack_r_ch(ptrStack, start) == '{')
+    if(!stackErrorCheck(ptrStack) && getCountOfDisclosed(ptrStack) == 0 && stack_r_int(ptrStack, start) == '{') {
         node = nodeReadFromStack(ptrStack, start);
+        stackFree(ptrStack);
+    }
     else
         node = NULL;
 
@@ -156,6 +157,59 @@ void nodePrintMessage(Node* ptrNode){
         return;
     }
 
-    for(int i = 0; stack_r_ch(ptrNode->messageStack, i) != '\0'; i++)
-        printf("%c", stack_r_ch(ptrNode->messageStack, i));
+    for(int i = 0; stack_r_int(ptrNode->messageStack, i) != '\0'; i++)
+        printf("%c", stack_r_int(ptrNode->messageStack, i));
+}
+
+void printFromStackToFile(FILE* output, Stack* ptrStack){
+
+    int c;
+
+    for(int i = 0; (c = stack_r_int(ptrStack, i)) != '\0'; i++)
+        putc(c, output);
+}
+
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "misc-no-recursion"
+
+void nodePushToFile(FILE* output, Node* ptrNode){
+    assert(output != NULL && ptrNode != NULL);
+
+    if(ptrNode->leftSubTree != NULL) {
+        fprintf(output, "\"");
+        printFromStackToFile(output, ptrNode->messageStack);
+        fprintf(output, "\" -> \"");
+        printFromStackToFile(output, ptrNode->leftSubTree->messageStack);
+        fprintf(output, "\"\n");
+    }
+
+    if(ptrNode->rightSubTree != NULL){
+        fprintf(output, "\"");
+        printFromStackToFile(output, ptrNode->messageStack);
+        fprintf(output, "\" -> \"");
+        printFromStackToFile(output, ptrNode->rightSubTree->messageStack);
+        fprintf(output, "\"\n");
+    }
+
+    if(ptrNode->leftSubTree != NULL)
+        nodePushToFile(output, ptrNode->leftSubTree);
+
+    if(ptrNode->rightSubTree != NULL)
+        nodePushToFile(output, ptrNode->rightSubTree);
+}
+
+#pragma clang diagnostic pop
+
+void nodeSaveToFile(FILE* output, Node* ptrNode){
+    if(output != NULL){
+        fprintf(output, "digraph Cock{\nnode[color=blue,fontsize=14, style=filled,fillcolor=lightgrey]\n\"");
+        printFromStackToFile(output, ptrNode->messageStack);
+        fprintf(output, "\" [shape=rectangle]\n");
+
+        nodePushToFile(output, ptrNode);
+
+        fprintf(output, "}\n");
+    }
+    else
+        printf("save to file fail\n");
 }

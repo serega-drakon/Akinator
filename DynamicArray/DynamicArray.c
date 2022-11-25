@@ -344,6 +344,13 @@ char stack_r_ch(Stack *ptrStack, unsigned x){
         return 0;
 }
 
+int stack_r_int(Stack* ptrStack, unsigned x){
+    if(!stackErrorCheck(ptrStack) && ptrStack->sizeOfElement >= sizeof(int))
+        return *(int*) stack_r(ptrStack, x);
+    else
+        return 0;
+}
+
 /// Возвращает указатель на xOfInt32 int из элемента массива
 int32_t *stack_r_int32(Stack *ptrStack, unsigned xOfElement, unsigned xOfInt32){
     if(!stackErrorCheck(ptrStack) && xOfInt32 * sizeof(int32_t) < ptrStack->sizeOfElement)

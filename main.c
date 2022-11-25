@@ -26,8 +26,14 @@ int main(int argc, char** args) {
     else
         printf("Error reading file\n");
 
-    if(ptrNode != NULL)
+    if(ptrNode != NULL){
+        if(mainArg.saveToFileFlag == 1){
+            FILE* outputFile = fopen("../output.txt", "w");
+            nodeSaveToFile(outputFile, ptrNode);
+            fclose(outputFile);
+        }
         gameStart(ptrNode);
+    }
     else
         printf("Node error, cannot run the game...\n");
 

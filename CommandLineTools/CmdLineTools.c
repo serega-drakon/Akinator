@@ -31,7 +31,7 @@ Args getArgs(int argc, char** args){
             }
         }
         else if(strCompare(args[i], "-save")){
-            //FIXME
+            arguments.saveToFileFlag = 1;
         }
     }
     return arguments;
