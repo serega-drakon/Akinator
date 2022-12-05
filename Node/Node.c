@@ -27,31 +27,12 @@ void nodeDestruct(Node* node){
 
     if(node != NULL) {
         stackFree(node->messageStack);
-        if (node->leftSubTree != NULL)
-            nodeDestruct(node->leftSubTree);
-        if (node->rightSubTree != NULL)
-            nodeDestruct(node->rightSubTree);
+        nodeDestruct(node->leftSubTree);
+        nodeDestruct(node->rightSubTree);
         free(node);
     }
 }
 #pragma clang diagnostic pop
-
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "misc-no-recursion"
-
-///Подфункция nodeReadFromStack
-void skipBraces(Stack* ptrStack, unsigned int* i){
-
-    int countOfDisclosed = 1;
-
-    while(countOfDisclosed != 0){ //скип левого дерева
-        (*i)++;
-        if(stack_r_int(ptrStack, *i) == '{')
-            countOfDisclosed++;
-        else if(stack_r_int(ptrStack, *i) == '}')
-            countOfDisclosed--;
-    }
-}
 
 ///Подфункция nodeReadFromStack
 void pushMessage(Node* ptrNode, Stack* ptrStack, unsigned int* i){
@@ -64,35 +45,32 @@ void pushMessage(Node* ptrNode, Stack* ptrStack, unsigned int* i){
     push(ptrNode->messageStack, &c);
 }
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "misc-no-recursion"
+
 ///Подфункция nodeReadFromFile
-Node* nodeReadFromStack(Stack* ptrStack, unsigned int start){
+Node* nodeReadFromStack(Stack* ptrStack, unsigned int *i){
     assert(ptrStack != NULL);
 
     Node* ptrNode = nodeInit();
 
-    unsigned int i = start; //позиция считывания
-
-    if(stack_r_int(ptrStack, ++i) == '{') { //наткнулись на левое дерево
+    if(stack_r_int(ptrStack, ++(*i)) == '{') { //наткнулись на левое дерево
         ptrNode->leftSubTree = nodeReadFromStack(ptrStack, i);
-
-        skipBraces(ptrStack, &i);
-
-        i++;
+        (*i)++;
     }
 
-    pushMessage(ptrNode, ptrStack, &i);
+    pushMessage(ptrNode, ptrStack, i);
 
-    if(stack_r_int(ptrStack, i) == '{') { //наткнулись на правое
+    if(stack_r_int(ptrStack, *i) == '{') { //наткнулись на правое
         ptrNode->rightSubTree = nodeReadFromStack(ptrStack, i);
 
-        skipBraces(ptrStack, &i);
-
-        if(stack_r_int(ptrStack, ++i) != '}')
+        if(stack_r_int(ptrStack, ++(*i)) != '}')
             printf("Ошибка ввода, после правого поддерева символы!\n");
     }
 
     return ptrNode;
 }
+
 #pragma clang diagnostic pop
 
 ///Инициализирует массив, заполняет его и возвращает ссылку на него \n
@@ -103,8 +81,13 @@ Stack* readToArrayFromFile(FILE* input) {
     Stack *ptrStack = stackInit(sizeof(int));
     int c;
 
-    while ((c = getc(input)) != EOF)
+    while((c = getc(input)) == ' ' || c == '\n' || c == '\t')
+        ;
+
+    do {
         push(ptrStack, &c);
+    } while ((c = getc(input)) != EOF);
+
     return ptrStack;
 }
 
@@ -122,30 +105,19 @@ int getCountOfDisclosed(Stack* ptrStackNode){
     return countOfDisclosed;
 }
 
-unsigned int skipSpacePos(Stack* ptrStack){
-
-    unsigned int i = 0;
-    int c;
-
-    while((c = stack_r_int(ptrStack, i)) == ' ' || c == '\t' || c == '\n')
-        i++;
-    return i;
-}
-
 ///Читает дерево из данного файла и возвращает указатель на неё
 Node* nodeReadFromFile(FILE* input){
 
     Stack* ptrStack = readToArrayFromFile(input);
     Node* node;
+    unsigned int i = 0;
 
-    unsigned int start = skipSpacePos(ptrStack);
-    if(!stackErrorCheck(ptrStack) && getCountOfDisclosed(ptrStack) == 0 && stack_r_int(ptrStack, start) == '{') {
-        node = nodeReadFromStack(ptrStack, start);
-        stackFree(ptrStack);
-    }
+    if(!stackErrorCheck(ptrStack) && getCountOfDisclosed(ptrStack) == 0 && stack_r_int(ptrStack, i) == '{')
+        node = nodeReadFromStack(ptrStack, &i);
     else
         node = NULL;
 
+    stackFree(ptrStack);
     return node;
 }
 
@@ -201,6 +173,7 @@ void nodePushToFile(FILE* output, Node* ptrNode){
 #pragma clang diagnostic pop
 
 void nodeSaveToFile(FILE* output, Node* ptrNode){
+
     if(output != NULL){
         fprintf(output, "digraph Cock{\nnode[color=blue,fontsize=14, style=filled,fillcolor=lightgrey]\n\"");
         printFromStackToFile(output, ptrNode->messageStack);
